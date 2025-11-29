@@ -1,0 +1,51 @@
+amends "elide:project.pkl"
+import "elide:project.pkl" as build
+
+name = "elide-source-file-fixer"
+description = "Fixes 'SourceFile' attributes in JVM class files."
+
+jvm {
+  main = "dev.elide.sourceFileFixer.MainKt"
+}
+
+local versions = new {
+  asm = "9.9"
+  guava = "33.4.8-jre"
+  kotlin = "2.2.21"
+  kotlinx = new {
+    serialization = "1.9.0"
+  }
+}
+
+dependencies {
+  maven {
+    packages {
+      "org.jetbrains.kotlin:kotlin-stdlib:\(versions.kotlin)"
+      "org.jetbrains.kotlin:kotlin-reflect:\(versions.kotlin)"
+      "com.google.guava:guava:\(versions.guava)"
+      "org.jetbrains.kotlinx:kotlinx-serialization-json:\(versions.kotlinx.serialization)"
+      "org.ow2.asm:asm:\(versions.asm)"
+    }
+  }
+}
+
+sources {
+  ["main"] = "src/main/kotlin/**/*.kt"
+  ["test"] = "src/test/kotlin/**/*.kt"
+}
+
+artifacts {
+  ["jar"] = build.jar()
+  ["native"] = build.nativeImage("jar")
+  ["container"] = (build.containerImage("native")) {
+    image = "ghcr.io/elide-tools/sourcefile-fixer"
+  }
+}
+
+tests {
+  coverage {
+    paths {
+      "dev*"
+    }
+  }
+}
